@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./style.css">
+  <title>APEX — Трекер привычек и дисциплины</title>
+</head>
+<body>
+
+  <!-- ЭКРАН 1: ВЫБОР ПРИВЫЧЕК (КАК НА СКРИНШОТАХ) -->
+  <div id="onboardingView" class="container hidden">
+    <div class="onboarding-header">
+      <h1>Выберите привычки</h1>
+      <p>По вашим целям — нажмите, чтобы добавить</p>
+    </div>
+
+    <div id="presetList" class="preset-list"></div>
+
+    <button class="link-btn" onclick="openCustomModal()">+ Или создайте свою привычку</button>
+    <button class="primary-btn" onclick="finishOnboarding()">Продолжить</button>
+  </div>
+
+  <!-- ЭКРАН 2: ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+  <div id="mainAppView" class="container hidden">
+    <div class="top-bar">
+      <h2 id="pageTitle">Сегодня</h2>
+      <div class="clock-badge">
+        <span class="dot-live"></span>
+        <span id="liveClock">00:00:00</span>
+      </div>
+    </div>
+
+    <!-- ВКЛАДКА: СЕГОДНЯ -->
+    <div id="tab-today">
+      <div class="progress-card">
+        <div class="progress-top">
+          <span>Прогресс дисциплины</span>
+          <strong id="progressText">0% (0/0)</strong>
+        </div>
+        <div class="progress-bar-bg">
+          <div id="progressFill" class="progress-bar-fill"></div>
+        </div>
+      </div>
+
+      <div id="todayHabitsList"></div>
+
+      <button class="link-btn" style="margin-top: 14px;" onclick="openCustomModal()">
+        + Добавить привычку или будильник
+      </button>
+    </div>
+
+    <!-- ВКЛАДКА: КАЛЕНДАРЬ -->
+    <div id="tab-calendar" class="hidden">
+      <div class="progress-card">
+        <h4>Активность за текущий месяц</h4>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+          Зеленым отмечены дни, когда выполнены все задачи
+        </p>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </div>
+    </div>
+
+    <!-- ВКЛАДКА: АНАЛИТИКА -->
+    <div id="tab-analytics" class="hidden">
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span>Текущая серия (Streak)</span>
+          <h3 id="statStreak">0 дн.</h3>
+        </div>
+        <div class="stat-box">
+          <span>Всего выполнено</span>
+          <h3 id="statTotal">0</h3>
+        </div>
+        <div class="stat-box">
+          <span>Активных привычек</span>
+          <h3 id="statActive">0</h3>
+        </div>
+        <div class="stat-box">
+          <span>Уровень дисциплины</span>
+          <h3 id="statLevel">Новичок</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- ВКЛАДКА: НАГРАДЫ -->
+    <div id="tab-rewards" class="hidden">
+      <div id="rewardsList"></div>
+    </div>
+
+    <!-- ВКЛАДКА: ПРОФИЛЬ -->
+    <div id="tab-profile" class="hidden">
+      <div class="progress-card">
+        <h4>Настройки профиля и звука</h4>
+        <div class="form-group" style="margin-top: 14px;">
+          <label>Твое имя в системе</label>
+          <input type="text" id="profileNameInput" placeholder="Например: Шахриёр" onchange="saveProfile()" />
+        </div>
+        <div class="form-group">
+          <label>Мелодия будильника / напоминания</label>
+          <select id="alarmSoundSelect" onchange="saveProfile()">
+            <option value="beep">Классический цифровой сигнал</option>
+            <option value="chime">Мягкий колокольчик (Фокус)</option>
+            <option value="arcade">Энергичный импульс (Спорт)</option>
+          </select>
+        </div>
+        <button class="primary-btn" style="margin-top: 8px; background: #222;" onclick="testAlarmSound()">
+          🔊 Проверить звук будильника
+        </button>
+        <button class="primary-btn" style="margin-top: 12px; background: rgba(255,59,48,0.15); color: #ff6b6b;" onclick="openOnboardingAgain()">
+          + Добавить из стандартного каталога привычек
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
+  <nav id="bottomNav" class="bottom-nav hidden">
+    <div class="nav-inner">
+      <button class="nav-btn active" onclick="switchTab('today', 'Сегодня', this)">
+        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span>Сегодня</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('calendar', 'Календарь', this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Календарь</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('analytics', 'Аналитика', this)">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Аналитика</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('rewards', 'Награды', this)">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+        <span>Награды</span>
+      </button>
+      <button class="nav-btn" onclick="switchTab('profile', 'Профиль', this)">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Профиль</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- МОДАЛЬНОЕ ОКНО: СВОЯ ПРИВЫЧКА + БУДИЛЬНИК -->
+  <div id="customModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3>Новая привычка</h3>
+      <div class="form-group">
+        <label>Название</label>
+        <input type="text" id="newHabitTitle" placeholder="Например: Кодинг на JS" />
+      </div>
+      <div class="form-group">
+        <label>Цель / описание</label>
+        <input type="text" id="newHabitSub" placeholder="Например: 60 минут без телефона" />
+      </div>
+      <div class="form-group">
+        <label>Иконка (эмодзи)</label>
+        <input type="text" id="newHabitIcon" value="🔥" maxlength="2" />
+      </div>
+      <div class="form-group">
+        <label>Время будильника (необязательно)</label>
+        <input type="time" id="newHabitTime" />
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 16px;">
+        <button class="primary-btn" style="background: #222;" onclick="closeCustomModal()">Отмена</button>
+        <button class="primary-btn" onclick="saveCustomHabit()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ВСПЛЫВАЮЩЕЕ УВЕДОМЛЕНИЕ БУДИЛЬНИКА -->
+  <div id="alarmPopup" class="alarm-popup">
+    <h4>⏰ Время по расписанию!</h4>
+    <p id="alarmPopupText" style="font-size: 14px; margin-bottom: 12px;"></p>
+    <button class="primary-btn" style="padding: 8px 12px; font-size: 13px;" onclick="stopAlarm()">Выключить сигнал</button>
+  </div>
+  <script src="./script.js"></script>
+</body>
+</html>
